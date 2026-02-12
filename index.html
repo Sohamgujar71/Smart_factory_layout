@@ -10,7 +10,7 @@
   <div class="app-shell">
     <header>
       <h1>Dynamic Factory Layout Tool</h1>
-      <p>Clean visual layout with area drill-down, machine sequence view, and role-based upload workflow.</p>
+      <p>Smart, no-code layout activation with live machine monitoring.</p>
     </header>
 
     <main class="main-grid">
@@ -28,10 +28,7 @@
         <div class="panel-card">
           <h2>Layout Pipeline</h2>
           <ol>
-            <li>Upload CSV</li>
-            <li>Auto-map columns</li>
-            <li>Stage validated config</li>
-            <li>Activate</li>
+            <li>Upload CSV</li><li>Auto-map columns</li><li>Stage validated config</li><li>Activate</li>
           </ol>
           <input id="csvInput" type="file" accept=".csv" disabled />
           <p id="uploadMessage">No staged file yet. Switch role to Admin to upload.</p>
@@ -65,27 +62,11 @@
             <g id="lineLayer"></g>
           </svg>
           <div id="areaLayer"></div>
-        </div>
-
-        <div class="area-detail">
-          <div class="area-detail-head">
-            <h2 id="selectedAreaTitle">Area Detail</h2>
-            <p id="selectedAreaMeta">Click any area block to inspect machine sequence and flow shape.</p>
-          </div>
-
-          <div class="flow-card">
-            <h3>Flow Type: <span id="flowType">-</span></h3>
-            <svg id="flowSvg" viewBox="0 0 820 150" preserveAspectRatio="none"></svg>
-          </div>
-
-          <div class="machines-grid" id="machinesGrid"></div>
+          <div id="workCenterLayer"></div>
         </div>
       </section>
 
-      <aside id="detailPanel" class="detail-panel">
-        <h3>Machine Detail</h3>
-        <p class="helper">Click a machine card in the area detail section to inspect metrics.</p>
-      </aside>
+      <aside id="detailPanel" class="detail-panel"></aside>
     </main>
   </div>
 

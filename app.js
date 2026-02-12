@@ -214,12 +214,7 @@ csvInput.addEventListener('change', () => {
 
 activateBtn.addEventListener('click', () => {
   if (!stagedVersion) return;
-  history.unshift({
-    version: stagedVersion,
-    activatedAt: new Date().toLocaleString(),
-    activatedBy: 'admin@plant.local',
-    checksum: Math.random().toString(16).slice(2, 10)
-  });
+  history.unshift({ version: stagedVersion, activatedAt: new Date().toLocaleString(), activatedBy: 'admin@plant.local', checksum: Math.random().toString(16).slice(2, 10) });
   renderHistory();
   uploadMessage.textContent = `${stagedVersion} activated successfully.`;
   activateBtn.disabled = true;
@@ -228,4 +223,5 @@ activateBtn.addEventListener('click', () => {
 renderLayout();
 renderSummary();
 renderHistory();
+renderDetail(data.workCenters[0]);
 roleChanged();
