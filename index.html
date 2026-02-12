@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dynamic Factory Layout Tool</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <h1>Dynamic Factory Layout Tool</h1>
+      <p>Smart, no-code layout activation with live machine monitoring.</p>
+    </header>
+
+    <main class="main-grid">
+      <section class="control-panel">
+        <div class="panel-card">
+          <h2>Access Role</h2>
+          <select id="roleSelect">
+            <option value="Viewer">Viewer</option>
+            <option value="Admin">Admin</option>
+            <option value="Developer">Developer</option>
+          </select>
+          <small id="roleHint">Read-only monitoring mode.</small>
+        </div>
+
+        <div class="panel-card">
+          <h2>Layout Pipeline</h2>
+          <ol>
+            <li>Upload CSV</li><li>Auto-map columns</li><li>Stage validated config</li><li>Activate</li>
+          </ol>
+          <input id="csvInput" type="file" accept=".csv" disabled />
+          <p id="uploadMessage">No staged file yet. Switch role to Admin to upload.</p>
+          <button id="activateBtn" disabled>Activate staged version</button>
+        </div>
+
+        <div class="panel-card stats">
+          <h2>Live Summary</h2>
+          <div class="stat-grid">
+            <div><span id="totalCount">0</span><small>Total</small></div>
+            <div><span id="runningCount">0</span><small>Running</small></div>
+            <div><span id="attentionCount">0</span><small>Attention</small></div>
+            <div><span id="downCount">0</span><small>Down</small></div>
+          </div>
+        </div>
+
+        <div class="panel-card history">
+          <h2>Version History</h2>
+          <ul id="historyList"></ul>
+        </div>
+      </section>
+
+      <section class="layout-section">
+        <div id="layoutWrap" class="layout-wrap">
+          <svg class="connector-layer" viewBox="0 0 1500 620" preserveAspectRatio="none">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                <path d="M0,0 L10,4 L0,8 Z" fill="#222"></path>
+              </marker>
+            </defs>
+            <g id="lineLayer"></g>
+          </svg>
+          <div id="areaLayer"></div>
+          <div id="workCenterLayer"></div>
+        </div>
+      </section>
+
+      <aside id="detailPanel" class="detail-panel"></aside>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
