@@ -37,19 +37,26 @@ const history = [
   { version: 'v1.0.2', activatedAt: '2026-02-09 14:20', activatedBy: 'admin@plant.local', checksum: '35d44b90' }
 ];
 
+const areaObjects = Object.fromEntries(
+  data.areas.map((area) => [area.areaId, [
+    { id: `${area.areaId}-OBJ-1`, label: 'Buffer Rack' },
+    { id: `${area.areaId}-OBJ-2`, label: 'Safety Gate' }
+  ]])
+);
+
 const roleSelect = document.getElementById('roleSelect');
 const roleHint = document.getElementById('roleHint');
 const csvInput = document.getElementById('csvInput');
 const activateBtn = document.getElementById('activateBtn');
 const uploadMessage = document.getElementById('uploadMessage');
 const detailPanel = document.getElementById('detailPanel');
-const selectedAreaTitle = document.getElementById('selectedAreaTitle');
-const selectedAreaMeta = document.getElementById('selectedAreaMeta');
-const machinesGrid = document.getElementById('machinesGrid');
-const flowTypeLabel = document.getElementById('flowType');
-const flowSvg = document.getElementById('flowSvg');
+const blockInspector = document.getElementById('blockInspector');
+const closeInspectorBtn = document.getElementById('closeInspectorBtn');
+const inspectorTitle = document.getElementById('inspectorTitle');
+const inspectorMeta = document.getElementById('inspectorMeta');
+const inspectorSvg = document.getElementById('inspectorSvg');
+const inspectorLegend = document.getElementById('inspectorLegend');
 let stagedVersion = '';
-let selectedAreaId = 'A-FM';
 
 const getAreaCenter = (areaId) => {
   const area = data.areas.find((a) => a.areaId === areaId);
@@ -89,69 +96,90 @@ function renderMachineDetail(wc) {
     </dl>`;
 }
 
-function drawFlowShape(type, nodes) {
-  if (!nodes.length) {
-    flowSvg.innerHTML = '';
-    return;
-  }
+function buildInspectorNodes(machines, objects) {
+  const machineNodes = machines.map((machine, i) => ({
+    id: machine.id,
+    label: machine.machineName,
+    type: 'machine',
+    status: machine.status,
+    x: 120 + i * 180,
+    y: 110
+  }));
 
-  const spacing = 760 / Math.max(nodes.length, 1);
-  const points = nodes.map((_, index) => {
-    const x = 30 + spacing * index;
-    if (type === 'U') {
-      return { x, y: index < Math.ceil(nodes.length / 2) ? 45 : 110 };
-    }
-    if (type === 'S') {
-      return { x, y: index % 2 === 0 ? 45 : 105 };
-    }
-    return { x, y: 75 };
-  });
+  const objectNodes = objects.map((object, i) => ({
+    id: object.id,
+    label: object.label,
+    type: 'object',
+    x: 120 + i * 240,
+    y: 250
+  }));
 
-  const circles = points.map((pt, i) => `<circle cx="${pt.x}" cy="${pt.y}" r="9" fill="#2563eb"></circle><text x="${pt.x}" y="${pt.y - 14}" text-anchor="middle" font-size="11">${nodes[i].machineName}</text>`).join('');
-  const path = points.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`).join(' ');
-
-  flowSvg.innerHTML = `
-    <path d="${path}" fill="none" stroke="#1f2937" stroke-width="2.5"></path>
-    ${circles}
-    <text x="12" y="140" font-size="12" fill="#6b7280">Sequence view based on ${type} line logic</text>
-  `;
+  return [...machineNodes, ...objectNodes];
 }
 
-function renderAreaDetails(areaId) {
-  selectedAreaId = areaId;
+function openBlockInspector(areaId) {
   const area = data.areas.find((a) => a.areaId === areaId);
   const machines = data.workCenters.filter((wc) => wc.areaId === areaId);
+  const objects = areaObjects[areaId] || [];
+  const nodes = buildInspectorNodes(machines, objects);
 
-  selectedAreaTitle.textContent = `${area.areaName} (${area.areaId})`;
-  selectedAreaMeta.textContent = `${machines.length} machine(s) in this area. Click any machine below for details.`;
-  flowTypeLabel.textContent = area.flowType;
+  if (!area) return;
 
-  drawFlowShape(area.flowType, machines);
+  inspectorTitle.textContent = `${area.areaName} (${area.areaId})`;
+  inspectorMeta.textContent = `${machines.length} machine(s), ${objects.length} object(s), and internal line flow shown below.`;
 
-  machinesGrid.innerHTML = machines.map((machine) => `
-    <article class="machine-card" data-machine-id="${machine.id}">
-      <strong>${machine.machineName}</strong>
-      <small>${machine.workCenterId}</small>
-      <span class="badge ${machine.status.toLowerCase()}">${machine.status}</span>
-    </article>
-  `).join('');
+  const lines = nodes.slice(1).map((node, index) => {
+    const previous = nodes[index];
+    return `<line x1="${previous.x}" y1="${previous.y}" x2="${node.x}" y2="${node.y}" stroke="#1f2937" stroke-width="2" marker-end="url(#insideArrow)" />`;
+  }).join('');
 
-  document.querySelectorAll('.area-card').forEach((areaNode) => {
-    areaNode.classList.toggle('active', areaNode.dataset.areaId === areaId);
+  const nodeShapes = nodes.map((node) => {
+    if (node.type === 'machine') {
+      const statusClass = node.status.toLowerCase();
+      return `
+      <g>
+        <rect x="${node.x - 62}" y="${node.y - 26}" width="124" height="52" rx="10" class="node-box ${statusClass}" />
+        <text x="${node.x}" y="${node.y + 5}" text-anchor="middle">${node.label}</text>
+      </g>`;
+    }
+
+    return `
+      <g>
+        <circle cx="${node.x}" cy="${node.y}" r="28" class="node-object" />
+        <text x="${node.x}" y="${node.y + 5}" text-anchor="middle">${node.label}</text>
+      </g>`;
+  }).join('');
+
+  inspectorSvg.innerHTML = `
+    <defs>
+      <marker id="insideArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 Z" fill="#1f2937"></path>
+      </marker>
+    </defs>
+    ${lines}
+    ${nodeShapes}
+  `;
+
+  inspectorLegend.innerHTML = machines.map((machine) => `<button class="legend-pill ${machine.status.toLowerCase()}" data-machine-id="${machine.id}">${machine.machineName}</button>`).join('');
+
+  inspectorLegend.querySelectorAll('.legend-pill').forEach((pill) => {
+    pill.addEventListener('click', () => {
+      const machine = machines.find((m) => m.id === pill.dataset.machineId);
+      if (machine) renderMachineDetail(machine);
+    });
   });
 
   if (machines.length) {
     renderMachineDetail(machines[0]);
-  } else {
-    detailPanel.innerHTML = '<h3>Machine Detail</h3><p class="helper">No machines configured for this area.</p>';
   }
 
-  document.querySelectorAll('.machine-card').forEach((card) => {
-    card.addEventListener('click', () => {
-      const machine = machines.find((m) => m.id === card.dataset.machineId);
-      if (machine) renderMachineDetail(machine);
-    });
-  });
+  blockInspector.classList.add('open');
+  blockInspector.setAttribute('aria-hidden', 'false');
+}
+
+function closeInspector() {
+  blockInspector.classList.remove('open');
+  blockInspector.setAttribute('aria-hidden', 'true');
 }
 
 function renderLayout() {
@@ -171,10 +199,8 @@ function renderLayout() {
   }).join('');
 
   document.querySelectorAll('.area-card').forEach((node) => {
-    node.addEventListener('click', () => renderAreaDetails(node.dataset.areaId));
+    node.addEventListener('click', () => openBlockInspector(node.dataset.areaId));
   });
-
-  renderAreaDetails(selectedAreaId);
 }
 
 function roleChanged() {
@@ -192,6 +218,10 @@ function roleChanged() {
 }
 
 roleSelect.addEventListener('change', roleChanged);
+closeInspectorBtn.addEventListener('click', closeInspector);
+blockInspector.addEventListener('click', (event) => {
+  if (event.target === blockInspector) closeInspector();
+});
 
 csvInput.addEventListener('change', () => {
   const file = csvInput.files[0];
@@ -223,5 +253,4 @@ activateBtn.addEventListener('click', () => {
 renderLayout();
 renderSummary();
 renderHistory();
-renderDetail(data.workCenters[0]);
 roleChanged();

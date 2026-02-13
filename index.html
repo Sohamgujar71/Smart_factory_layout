@@ -62,13 +62,25 @@
             <g id="lineLayer"></g>
           </svg>
           <div id="areaLayer"></div>
-          <div id="workCenterLayer"></div>
         </div>
       </section>
 
-      <aside id="detailPanel" class="detail-panel"></aside>
+      <aside id="detailPanel" class="detail-panel">
+        <h3>Machine Detail</h3>
+        <p class="helper">Click a block to inspect machines, lines, and objects.</p>
+      </aside>
     </main>
   </div>
+
+  <section id="blockInspector" class="block-inspector" aria-hidden="true">
+    <article class="inspector-card">
+      <button id="closeInspectorBtn" class="close-btn" type="button">Close</button>
+      <h3 id="inspectorTitle"></h3>
+      <p id="inspectorMeta" class="inspector-meta"></p>
+      <svg id="inspectorSvg" viewBox="0 0 860 330" class="inspector-svg"></svg>
+      <div id="inspectorLegend" class="inspector-legend"></div>
+    </article>
+  </section>
 
   <script src="app.js"></script>
 </body>
